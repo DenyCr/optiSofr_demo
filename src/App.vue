@@ -1,15 +1,26 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png">
   <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <PageGrid :cols="cols" :response="data" />
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import PageGrid from './components/pageGrid'
+import cols from './data/cols/gridCols'
+import data from './data/data/testdata'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    HelloWorld,
+    PageGrid
+  },
+  data () {
+    return {
+      cols,
+      data
+    }
   }
 }
 </script>
