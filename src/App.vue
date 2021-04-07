@@ -1,25 +1,24 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
-  <PageGrid :cols="cols" :response="data" />
+  <div>
+    <img alt="Vue logo" src="./assets/logo.png">
+    <PageGrid :cols="cols" :response="data" />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 import PageGrid from './components/pageGrid'
 import cols from './data/cols/gridCols'
-import data from './data/data/testdata'
+import data from './data/data/testdata1'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
     PageGrid
   },
   data () {
     return {
       cols,
-      data
+      data,
     }
   }
 }
@@ -27,11 +26,24 @@ export default {
 
 <style>
 #app {
+  position: relative;
+
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  display: flex;
   text-align: center;
+  justify-content: center;
+  align-items: center;
+
   color: #2c3e50;
+  margin: 60px auto;
   margin-top: 60px;
+  margin-left: auto;
+  margin-right: auto; 
+  width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 </style>

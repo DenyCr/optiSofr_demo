@@ -1,8 +1,4 @@
 module.exports = [
-  // {
-  //   title: 'ID',
-  //   key: 'ProductID'
-  // },
   {
     title: 'Product Name',
     key: 'ProductName'
@@ -23,6 +19,9 @@ module.exports = [
     title: '',
     key: 'command'
   },
-
+  // {
+  //   title: 'ID',
+  //   key: 'ProductID'
+  // },
 
 ]
