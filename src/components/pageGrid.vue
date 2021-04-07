@@ -6,8 +6,8 @@ div
       tr
         th(colspan=6)
           button.button
-            span.icon.add.fa-plus
-            i.fal.fa-plus
+            svg(viewBox="0 0 24 24")
+              <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
             span Add new record
       th(v-for="col in cols" v-html="col.title")
     tfoot
@@ -35,16 +35,20 @@ div
           
           span(v-if="col.key === 'command'") 
             a.button(href="#")
-              span.icon.edit
+              svg(viewBox="0 0 24 24")
+                <path fill="currentColor" d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" />
               span Edit
             a.button(href="#")
-              span.icon.delete
+              svg(viewBox="0 0 24 24")
+                <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
               span Delete
     
   span.error(v-if="!page") Данные были не получены или ошибочны, перезагрузите страницу
 </template>
 <script>
 export default {
+  components: {
+  },
   props: ['cols', 'response'],
   data () {
     return {
@@ -147,6 +151,7 @@ export default {
 
 </script>
 <style scoped>
+
 table {
   width: 100%;
   border-color: #dee2e6;
@@ -226,6 +231,11 @@ tr:nth-child(2n) {
   box-shadow: 3px 3px rgba(0,0,0,.12);
 }
 .recordSteer {
-  background-image: linear-gradient( 90deg , #CC2E5D, #FF5858);
+  text-align: right;
+}
+svg {
+  width:24px;
+  height:24px;
+  margin-right: 0.8rem;
 }
 </style>

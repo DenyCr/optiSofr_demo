@@ -8,7 +8,7 @@
 <script>
 import PageGrid from './components/pageGrid'
 import cols from './data/cols/gridCols'
-import data from './data/data/testdata1'
+import data from './data/data/testdata'
 
 export default {
   name: 'App',
@@ -39,11 +39,7 @@ export default {
 
   color: #2c3e50;
   margin: 60px auto;
-  margin-top: 60px;
-  margin-left: auto;
-  margin-right: auto; 
   width: 100vw;
-  min-height: 100vh;
   overflow-x: hidden;
 }
 </style>
