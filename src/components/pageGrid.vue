@@ -60,12 +60,10 @@ div
   span.error(v-if="!page") Данные были не получены или ошибочны, перезагрузите страницу
 </template>
 <script>
-import ModalRecord from './modal'
 import vPopup from '../popup/v-popup'
 
 export default {
   components: {
-    ModalRecord,
     vPopup
   },
   props: ['cols', 'response'],
