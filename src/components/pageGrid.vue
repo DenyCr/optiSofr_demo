@@ -1,5 +1,23 @@
 <template lang="pug">
 div
+  div(:class="{'panding_window_active': isEditPopupInfo, 'panding_window_inactive': !isEditPopupInfo}")
+  v-popup(v-if='isEditPopupInfo' @closePopup='closePopupInfo')
+    div
+      //- .item
+        label ID
+        input(:value='isEditUnic') 
+      .item
+        label(:for='"ProductName-" + isEditUnic') Product Name
+        input(:value='data[isEditUnic-1].ProductName' :id='"ProductName-" + isEditUnic') 
+      .item
+        label(:for='"UnitPrice-" + isEditUnic') Unit Price
+        input(type="number" :value='data[isEditUnic-1].UnitPrice.toFixed(2)' :id='"UnitPrice-" + isEditUnic')
+      .item
+        label(:for='"UnitsInStock-" + isEditUnic') Units In Stock
+        input(type="number" :value='data[isEditUnic-1].UnitsInStock' :id='"UnitsInStock-" + isEditUnic')
+      .item
+        label(:for='"Discontinued-" + isEditUnic') Discontinued
+        input(type="checkbox" :checked='data[isEditUnic-1].Discontinued' :id='"Discontinued-" + isEditUnic')
   table.grid(v-if="response && response.length && page")
     thead.grid-header
       
@@ -15,15 +33,11 @@ div
         td(colspan=3)
           nav
             .pagination_grid
-              // «
-              button.button(@click="goToFirstPage" v-if="reversedPage>1 && maxPages>buffer+1") &laquo;
-              // ‹
-              button.button(@click="prevPage" v-if="reversedPage>1") &lsaquo;
-              button.button(v-for="page in maxSize" @click="goToPage(page)" :class="reversedPage == page ? 'activatePages' : ''" v-bind:disabled="reversedPage == page ? true : false") {{ page }}
-              // ›
-              button.button(@click="nextPage" v-if="reversedPage<maxPages") &rsaquo;
-              // »
-              button.button(@click="goToLastPage" v-if="reversedPage<maxPages && maxPages>buffer+1") &raquo;
+              .button(@click="goToFirstPage" v-if="reversedPage>1 && maxPages>buffer+1") &laquo;
+              .button(@click="prevPage" v-if="reversedPage>1") &lsaquo;
+              .button(v-for="page in maxSize" @click="goToPage(page)" :class="reversedPage == page ? 'activatePages' : ''" v-bind:disabled="reversedPage == page ? true : false") {{ page }}
+              .button(@click="nextPage" v-if="reversedPage<maxPages") &rsaquo;
+              .button(@click="goToLastPage" v-if="reversedPage<maxPages && maxPages>buffer+1") &raquo;
 
         td.recordSteer(colspan=3)        
           span {{page*20-19}} - {{(page*20 < count) ? page*20 : count}} of {{count}} items
@@ -34,7 +48,7 @@ div
           span(v-if="col.key !== 'UnitPrice'") {{item[col.key]}}
           
           span(v-if="col.key === 'command'") 
-            a.button(href="#")
+            a.button(href="#" @click="editPopupInfo(item['ProductID'])")
               svg(viewBox="0 0 24 24")
                 <path fill="currentColor" d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" />
               span Edit
@@ -46,8 +60,13 @@ div
   span.error(v-if="!page") Данные были не получены или ошибочны, перезагрузите страницу
 </template>
 <script>
+import ModalRecord from './modal'
+import vPopup from '../popup/v-popup'
+
 export default {
   components: {
+    ModalRecord,
+    vPopup
   },
   props: ['cols', 'response'],
   data () {
@@ -59,11 +78,12 @@ export default {
       count: 0,
       page: 1,
       buffer: 2,
-      offset: 0
+      offset: 0,
+      isEditPopupInfo: false,
+      isEditUnic: 0
     }
   },
   created () {
-    this.page = 1
     let par1 = 1
     let par2 = 2 + this.buffer * 2
     
@@ -87,6 +107,13 @@ export default {
     this.offset = min + 1
   },
   methods: {
+    editPopupInfo (id) {
+      this.isEditUnic = id
+      this.isEditPopupInfo = true
+    },
+    closePopupInfo () {
+      this.isEditPopupInfo = false
+    },
     getDataPage () {
       this.page = this.offset !== 0 ? this.offset / this.limit + 1 : 1
       let par1 = 0
@@ -107,12 +134,11 @@ export default {
       console.log(par1,par2)
       let min = this.page * this.limit - this.limit
       let max = (this.page * this.limit < this.count) ? this.page * this.limit : this.count
-      console.log(min,max)
       this.data = []
       for ( let index = min; index < max; index++ ) {
         this.data.push(this.response[index])
       }
-    },  
+    },
     nextPage () {
       this.offset = this.offset + this.limit
       this.getDataPage()
@@ -237,5 +263,35 @@ svg {
   width:24px;
   height:24px;
   margin-right: 0.8rem;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 40px;
+
+}
+.item label {
+  text-align: left;    
+  }
+.item * {  
+  padding: .75rem .75rem;
+  white-space: nowrap;
+}
+
+.panding_window_inactive{
+  display: none
+}
+.panding_window_active{
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  opacity: 0.85;
+  height: 100%;
+  z-index: 2;
+  float: bottom;
+  background: black;
+  backdrop-filter: blur(8px);
 }
 </style>

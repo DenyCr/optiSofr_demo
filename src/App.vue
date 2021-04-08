@@ -1,6 +1,6 @@
 <template>
   <div>
-    <img alt="Vue logo" src="./assets/logo.png">
+    <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
     <PageGrid :cols="cols" :response="data" />
   </div>
 </template>
@@ -26,7 +26,7 @@ export default {
 
 <style>
 #app {
-  position: relative;
+  /* position: relative; */
 
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
