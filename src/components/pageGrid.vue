@@ -1,29 +1,33 @@
 <template lang="pug">
 div
-  div(:class="{'panding_window_active': isEditPopupInfo, 'panding_window_inactive': !isEditPopupInfo}")
-  v-popup(v-if='isEditPopupInfo' @closePopup='closePopupInfo')
+  v-popup(
+    v-if='isEditPopupInfo'
+    @closePopup='closePopupInfo'
+    @eventPopup='eventPopup'
+    :popupTitle='popupParams.title'
+    :popupSubmitButton='popupParams.buttonTitle'
+    )
     div
-      //- .item
-        label ID
-        input(:value='isEditUnic') 
+      hr
       .item
-        label(:for='"ProductName-" + isEditUnic') Product Name
-        input(:value='data[isEditUnic-1].ProductName' :id='"ProductName-" + isEditUnic') 
+        label(:for="ProductName") Product Name
+        input(v-model="recordData.ProductName" :id="ProductName") 
       .item
-        label(:for='"UnitPrice-" + isEditUnic') Unit Price
-        input(type="number" :value='data[isEditUnic-1].UnitPrice.toFixed(2)' :id='"UnitPrice-" + isEditUnic')
+        label(:for="UnitPrice") Unit Price
+        input(v-model.number='recordData.UnitPrice' :id="UnitPrice" type="number")
       .item
-        label(:for='"UnitsInStock-" + isEditUnic') Units In Stock
-        input(type="number" :value='data[isEditUnic-1].UnitsInStock' :id='"UnitsInStock-" + isEditUnic')
+        label(:for="UnitsInStock") Units In Stock
+        input(v-model.number='recordData.UnitsInStock' :id="UnitsInStock" type="number")
       .item
-        label(:for='"Discontinued-" + isEditUnic') Discontinued
-        input(type="checkbox" :checked='data[isEditUnic-1].Discontinued' :id='"Discontinued-" + isEditUnic')
+        label(:for="Discontinued") Discontinued
+        input(v-model='recordData.Discontinued' :id="Discontinued" type="checkbox" style="margin: 5% 0;")
+      hr
   table.grid(v-if="response && response.length && page")
     thead.grid-header
       
       tr
         th(colspan=6)
-          button.button
+          button.button(@click='addPopupRecord()')
             svg(viewBox="0 0 24 24")
               <path fill="currentColor" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
             span Add new record
@@ -40,54 +44,62 @@ div
               .button(@click="goToLastPage" v-if="reversedPage<maxPages && maxPages>buffer+1") &raquo;
 
         td.recordSteer(colspan=3)        
-          span {{page*20-19}} - {{(page*20 < count) ? page*20 : count}} of {{count}} items
+          span {{countElemebts()}}
     tbody
       tr(v-for="item in data")
         td(v-for="col in cols")
           span(v-if="col.key === 'UnitPrice'") $ {{item[col.key].toFixed(2)}} 
           span(v-if="col.key !== 'UnitPrice'") {{item[col.key]}}
+          //- span {{item[col.key]}}
           
           span(v-if="col.key === 'command'") 
             a.button(href="#" @click="editPopupInfo(item['ProductID'])")
               svg(viewBox="0 0 24 24")
                 <path fill="currentColor" d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" />
               span Edit
-            a.button(href="#")
+            a.button(href="#" @click="deleteElem(item['ProductID'])")
               svg(viewBox="0 0 24 24")
                 <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
               span Delete
     
-  span.error(v-if="!page") Данные были не получены или ошибочны, перезагрузите страницу
+  span.error(v-if="!page || !response.length") Данные были не получены или ошибочны, перезагрузите страницу
 </template>
 <script>
 import vPopup from '../popup/v-popup'
+import InputCastom from './inputCastom.vue'
 
 export default {
   components: {
-    vPopup
+    vPopup,
+    InputCastom
   },
   props: ['cols', 'response'],
   data () {
     return {
+      values: [],
       limit: 20,
-      maxPages: 5,
+      maxPages: 7,
       maxSize: [],
       data: [],
-      count: 0,
       page: 1,
       buffer: 2,
       offset: 0,
       isEditPopupInfo: false,
-      isEditUnic: 0
+      unicId: 0,
+      popupParams: {
+        title: '',
+        buttonTitle: ''
+      },
+      recordData: {}
     }
   },
   created () {
+    this.values = this.response
+    this.unicId = this.response.length
     let par1 = 1
     let par2 = 2 + this.buffer * 2
-    
-    this.count = this.response.length
 
-    this.maxPages = Math.ceil(this.count / this.limit)
+    this.maxPages = Math.ceil(this.values.length / this.limit)
     this.maxSize = []
     for (
       let index = this.maxPages > 6 ? par1 : 1;
@@ -98,19 +110,77 @@ export default {
     }
     
     let min = this.page * this.limit - this.limit
-    let max = (this.page * this.limit < this.count) ? this.page * this.limit : this.count
+    let max = Math.min(this.values.length, this.page * this.limit)
     for ( let index = min; index < max; index++ ) {
-      this.data.push(this.response[index])
+      this.data.push(this.values[index])
     }
     this.offset = min + 1
+    this.goToPage(1)
+    
   },
   methods: {
     editPopupInfo (id) {
+      for (let i = 0; i < this.values.length; i++) {        
+        if (this.values[i].ProductID === id) {
+          this.recordData = this.values[i]
+        }
+      }
+      this.popupParams.title = 'Edit Product'
+      this.popupParams.buttonTitle = 'Update'
       this.isEditUnic = id
       this.isEditPopupInfo = true
     },
+    eventPopup () {
+      let id = null
+      this.values.forEach((element,index) => {
+        
+        if (element.ProductID === this.recordData.ProductID) {
+          id=index
+        }
+
+      })
+      if (id === null) {
+        this.values.push(this.recordData)
+      }
+        this.recordData = {}
+        this.isEditPopupInfo = false
+        this.page = 1
+        this.getDataPage()
+    },
     closePopupInfo () {
       this.isEditPopupInfo = false
+    },
+    addPopupRecord () {      
+      this.recordData = {}
+      this.recordData.ProductID = this.inLastElement()
+      this.recordData.Discontinued = false
+
+      this.popupParams.title = 'Add Product'
+      this.popupParams.buttonTitle = 'Save'
+      this.isEditPopupInfo = true
+    },
+    inLastElement() {
+      let elem = 0
+      this.values.forEach(element => {
+        elem = element.ProductID 
+      })
+      return elem + 1
+    },
+    deleteElem (id) {
+      for(let i=0; i<=this.values.length; i++) {
+        if (id === this.values[i].ProductID) {
+          this.values.splice(i, 1);
+          this.goToPage(1)
+          break
+        }
+      }
+    },
+    countElemebts() {
+      let count = this.values.length
+      let min = this.page * this.limit - this.limit + 1
+      let max = this.page * this.limit
+      max = Math.min(count,max)
+      return min + " - " + max + " of "+ count +" items"
     },
     getDataPage () {
       this.page = this.offset !== 0 ? this.offset / this.limit + 1 : 1
@@ -129,12 +199,20 @@ export default {
           par2 = this.maxPages + 1
         }
       }
-      console.log(par1,par2)
+      this.maxPages = Math.ceil(this.values.length / this.limit)
+      this.maxSize = []
+      for (
+        let index = this.maxPages > 6 ? par1 : 1;
+        index < (this.maxPages > 6 ? par2 : this.maxPages + 1);
+        index++
+      ) {
+        this.maxSize.push(index)
+      }
       let min = this.page * this.limit - this.limit
-      let max = (this.page * this.limit < this.count) ? this.page * this.limit : this.count
+      let max = Math.min(this.values.length, this.page * this.limit)
       this.data = []
       for ( let index = min; index < max; index++ ) {
-        this.data.push(this.response[index])
+        this.data.push(this.values[index])
       }
     },
     nextPage () {
@@ -200,7 +278,7 @@ table {
   white-space: nowrap;
   border-color: rgba(33,37,41,.125);
 }
-.button {
+.button, button {
   margin-left: .16em;
   margin-right: .16em;
   text-decoration: none;
@@ -266,30 +344,18 @@ svg {
 .item {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-column-gap: 40px;
-
+  margin: 1vh
 }
 .item label {
   text-align: left;    
+  display: inline-block
   }
 .item * {  
   padding: .75rem .75rem;
   white-space: nowrap;
-}
-
-.panding_window_inactive{
-  display: none
-}
-.panding_window_active{
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  opacity: 0.85;
-  height: 100%;
-  z-index: 2;
-  float: bottom;
-  background: black;
-  backdrop-filter: blur(8px);
+  
+  display: flex;
+  justify-content: space-around;
+  white-space: pre;
 }
 </style>
